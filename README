@@ -1,0 +1,80 @@
+ActsAsRestricted
+================
+
+Restrict read/write access to your active record classes via a dynamically created Restricted namespace.
+
+so you can use your models exactly as normal but if you wish preface the Restricted namespace to restrict access:
+
+Restricted::Message.find(:all)
+
+Example
+=======
+
+install plugin
+
+add the following line to your class:
+
+   acts_as_restricted :read => true, :write => true
+
+the options instruct whether to restrict access to read or write, by default both are set to true.
+Also by default acts_as_restricted will restrict all access.
+
+you can set specific conditions for reading and writing in the class by optionally adding these functions:
+
+  def default_write_condition
+      raise "Message: write not allowed"
+  end
+
+  def self.default_condition
+      "sender_uid = #{current_user.id} or message_recipients.recipient_uid = #{current_user.id}"
+  rescue
+      "0"
+  end
+
+  def self.default_join
+      "LEFT OUTER JOIN message_recipients ON message_recipients.message_id = messages.id"
+  end
+
+Both default_condition and default_join allow you to add conditions or joins to finders with scope and keep all existing joins etc intact.
+
+the current_user function is also made available and grabs from the current thread:Thread.current['user']
+
+the plugin allows you to limit data retrieved, you completely restrict, or return subsets of data. You can also control writes to data (including create)
+
+Examples
+========
+
+Write
+-----
+
+>>  Thread.current['user'] = User.find_by_id(1)
+
+>> m2 = Restricted::Message.find_by_subject("test")
+=> #<Restricted::Message id: nil, date: "2008-08-13 18:03:01", subject: "test", content: "test", sender_uid: 3>
+>> m2.save
+
+RuntimeError: ActsAsRestricted: save not allowed
+
+Find
+----
+
+>> Message.find(:all).size
+=> 7
+>> Restricted::Message.find(:all).size
+=> 3
+
+>> Message.find(:all, :joins => 'LEFT OUTER JOIN users on users.id = messages.sender_uid', :conditions => 'users.id = 3').size
+=> 6
+
+Finders with options
+
+>> Restricted::Message.find(:all, :joins => 'LEFT OUTER JOIN users on users.id = messages.sender_uid', :conditions => 'users.id = 3').size
+=> 3
+
+produces the following SQL:
+
+  Restricted::Message Load (0.001001)   SELECT `messages`.* FROM `messages` LEFT OUTER JOIN users on users.id = messages.sender_uid LEFT OUTER JOIN message_recipients ON message_recipients.message_id = messages.id WHERE (sender_uid = 1 or message_recipients.recipient_uid = 1) AND (users.id = 3) 
+
+find_by, count and all other options work too as per normal.
+
+Copyright (c) 2008 [Stephen Strudwick], released under the MIT license
