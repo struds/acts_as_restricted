@@ -55,12 +55,11 @@ module ActsAsRestricted
             def count(*args)
                 clist = [ condition ]
                 joins = join || nil
-                selects = select || nil
 
                 options = args.extract_options!
                 combined_joins = options[:joins] ? options[:joins] + " " + joins.to_s : joins
 
-                self.with_scope( :find => { select => selects, :joins => combined_joins, :conditions => clist } ) do
+                self.with_scope( :find => { :joins => combined_joins, :conditions => clist } ) do
                     super(*args)
                 end
             end
