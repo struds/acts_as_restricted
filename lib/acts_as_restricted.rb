@@ -54,10 +54,10 @@ module ActsAsRestricted
 
             def count(*args)
                 clist = [ condition ]
-                joins = join || String.new
+                joins = join || nil
 
                 options = args.extract_options!
-                combined_joins = options[:joins] ? options[:joins] + " " + joins : nil
+                combined_joins = options[:joins] ? options[:joins] + " " + joins.to_s : joins
 
                 self.with_scope( :find => { :joins => combined_joins, :conditions => clist } ) do
                     super(*args)
@@ -66,9 +66,9 @@ module ActsAsRestricted
 
             def find_every(options)
                 clist = [ condition ]
-                joins = join || String.new
+                joins = join || nil
 
-                combined_joins = options[:joins] ? options[:joins] + " " + joins : nil
+                combined_joins = options[:joins] ? options[:joins] + " " + joins.to_s : joins
 
                 self.with_scope( :find => { :joins => combined_joins, :conditions => clist } ) do
                     super(options)
