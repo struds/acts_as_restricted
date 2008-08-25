@@ -24,15 +24,23 @@ module ActsAsRestricted
                    acts_as_restricted_set_options[:write] == false
                        super # basically do nothing
                 else
-                    default_write_condition
+                    restricted_write_condition
                 end
             end
 
             def method_missing(method_id, *arguments)
-                if method_id.to_s == "default_write_condition"
+                if method_id.to_s == "restricted_write_condition"
                     raise "ActsAsRestricted: save not allowed"
                 else
                     super(method_id, *arguments)
+                end
+            end
+
+            def current_user
+                if Thread.current['user']
+                    return Thread.current['user']
+                else
+                    return nil
                 end
             end
 
@@ -49,7 +57,7 @@ module ActsAsRestricted
                 joins = join || String.new
 
                 options = args.extract_options!
-                combined_joins = options[:joins] ? options[:joins] + " " + joins : joins
+                combined_joins = options[:joins] ? options[:joins] + " " + joins : nil
 
                 self.with_scope( :find => { :joins => combined_joins, :conditions => clist } ) do
                     super(*args)
@@ -60,7 +68,7 @@ module ActsAsRestricted
                 clist = [ condition ]
                 joins = join || String.new
 
-                combined_joins = options[:joins] ? options[:joins] + " " + joins : joins
+                combined_joins = options[:joins] ? options[:joins] + " " + joins : nil
 
                 self.with_scope( :find => { :joins => combined_joins, :conditions => clist } ) do
                     super(options)
@@ -77,11 +85,11 @@ module ActsAsRestricted
 
         private
 
-            def default_condition
+            def restricted_condition
                 return "0"
             end
 
-            def default_join
+            def restricted_join
                 return nil
             end
 
@@ -90,7 +98,7 @@ module ActsAsRestricted
                    acts_as_restricted_set_options[:read] == false
                        return nil
                 else
-                    default_join
+                    restricted_join
                 end
             end
 
@@ -99,7 +107,7 @@ module ActsAsRestricted
                    acts_as_restricted_set_options[:read] == false
                        return "1" # effectively do nothing
                 else
-                    default_condition
+                    restricted_condition
                 end
             end
 
