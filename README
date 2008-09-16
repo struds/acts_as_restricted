@@ -53,6 +53,10 @@ this example is from my project currently using the plugin and restricts read/wr
 
   acts_as_restricted :read => true, :write => true
 
+  before_save
+      restricted_before_save # this is a work around for the moment needed to enabled restricted write
+  end
+
   def restricted_write_condition
       if current_user.id != self.sender_uid
         raise "Message: write not allowed"
@@ -63,7 +67,7 @@ this example is from my project currently using the plugin and restricts read/wr
       if current_user
         "sender_uid = #{current_user.id} or message_recipients.recipient_uid = #{current_user.id}"
       else
-          "0"
+         ActsAsRestricted::SQL_NO_ACCESS # actually this is just "0"
       end
   end
 
@@ -121,7 +125,5 @@ TODO
 ====
 
 Bits of the code are still slightly hacky, nothing too serious, just still an early version.
-
-before_save fucntionality is clobbered in certain circumstances.. oops thats the very next thing to fix.
 
 Copyright (c) 2008 [Stephen Strudwick], released under the MIT license
