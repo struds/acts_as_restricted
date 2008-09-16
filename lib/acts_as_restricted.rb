@@ -1,5 +1,8 @@
 module ActsAsRestricted
 
+    SQL_NO_RESTRICTIONS = "1"
+    SQL_NO_ACCESS = "0"
+
     def self.included(base)
         base.extend(SingletonMethods)
     end
@@ -19,11 +22,9 @@ module ActsAsRestricted
 
         module InstanceMethods
 
-            def before_save
-                if acts_as_restricted_set_options[:use_restriction] == false or
-                   acts_as_restricted_set_options[:write] == false
-                       super # basically do nothing
-                else
+            def restricted_before_save
+                if acts_as_restricted_set_options[:use_restriction] == true and
+                   acts_as_restricted_set_options[:write] == true
                     restricted_write_condition
                 end
             end
@@ -87,7 +88,7 @@ module ActsAsRestricted
         private
 
             def restricted_condition
-                return "0"
+                return SQL_NO_RESTRICTIONS
             end
 
             def restricted_join
@@ -110,7 +111,7 @@ module ActsAsRestricted
             def condition
                 if acts_as_restricted_set_options[:use_restriction] == false or
                    acts_as_restricted_set_options[:read] == false
-                       return "1" # effectively do nothing
+                       return SQL_NO_RESTRICTIONS # effectively do nothing
                 else
                     restricted_condition
                 end
