@@ -1,6 +1,12 @@
 ActsAsRestricted
 ================
 
+NOTE: now named_scope is in 2.1 I'm going to rewrite this so instead of using namespaces it uses filters:
+
+	User.restricted.find... etc
+
+=======
+
 Restrict read/write access to your active record classes via a dynamically created Restricted namespace.
 
 so you can use your models exactly as normal but if you wish preface the Restricted namespace to restrict access:
