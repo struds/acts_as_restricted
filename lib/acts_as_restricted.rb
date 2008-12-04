@@ -10,6 +10,8 @@ module ActsAsRestricted
     module SingletonMethods
 
         def acts_as_restricted(options = {})
+            attr_accessor :is_restricted
+
             options = { :read => true, :write => true, :use_restriction => true }.merge(options)
 
             write_inheritable_attribute :acts_as_restricted_set_options, options
@@ -18,13 +20,27 @@ module ActsAsRestricted
             include InstanceMethods
             extend ClassMethods
 
+            # todo: we need instantiate any records with restricted == true if called from restricted named_scope
+            #  - overide named_scope to see if restricted and set attr_accessor :is_restricted
+            #  - on instantiate set is_restricted true on all new objects?
+            #  - then overrite before_save to check if is_restricted?
+            # possibly use after_initialize callback to set attr_acessor is_restricted
+
             named_scope :restricted, lambda { {:conditions => condition, :joins => join, :select => select} }
         end
 
         module InstanceMethods
 
+	    def after_initialize
+                self.is_restricted = true
+	    end
+
+	    def is_restricted?
+                is_restricted
+	    end
+
             def restricted?
-                true
+                return true
             end
 
             def current_user
