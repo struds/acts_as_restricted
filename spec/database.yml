@@ -1,0 +1,3 @@
+restricted_test:
+  adapter: sqlite3
+  database: test.db
