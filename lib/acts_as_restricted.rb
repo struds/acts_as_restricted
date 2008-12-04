@@ -21,19 +21,12 @@ module ActsAsRestricted
             extend ClassMethods
 
             # todo: we need instantiate any records with restricted == true if called from restricted named_scope
-            #  - overide named_scope to see if restricted and set attr_accessor :is_restricted
-            #  - on instantiate set is_restricted true on all new objects?
-            #  - then overrite before_save to check if is_restricted?
-            # possibly use after_initialize callback to set attr_acessor is_restricted
+# overwrite find_every to set restricted on every instantiate object where options[:is_restricted]
 
-            named_scope :restricted, lambda { {:conditions => condition, :joins => join, :select => select} }
+            named_scope :restricted, lambda { {:conditions => condition, :joins => join, :select => select, :readonly => true} }
         end
 
         module InstanceMethods
-
-	    def after_initialize
-                self.is_restricted = true
-	    end
 
 	    def is_restricted?
                 is_restricted
@@ -54,6 +47,12 @@ module ActsAsRestricted
         end
 
         module ClassMethods
+
+def find_every(options)
+    records = super(options)
+    records.each { |record| record.is_restricted = true } if options[:readonly]
+    records
+end
 
             def current_user
                 if Thread.current['user']
